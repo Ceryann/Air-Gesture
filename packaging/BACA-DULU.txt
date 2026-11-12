@@ -1,0 +1,24 @@
+GestureInput (AirControl) - Fase 0, portable. Tidak perlu install Python.
+
+CARA PAKAI
+1. Ekstrak seluruh folder ini (jangan jalankan dari dalam file zip).
+2. Klik dua kali  GestureInput-DryRun.bat  -> hanya preview, mouse asli TIDAK disentuh.
+   Pastikan label gestur di jendela benar.
+3. Jika sudah pas, klik dua kali  GestureInput.bat  -> mengontrol mouse sungguhan.
+
+PENGAMAN
+  Ctrl+Alt+F : freeze / lanjut      Ctrl+Alt+Q : keluar
+  q / ESC di jendela preview : keluar     Ctrl+C di jendela hitam : keluar
+  Gestur freeze: ibu jari + kelingking (shaka), tahan 2 detik.
+
+GESTUR
+  Telapak terbuka = gerak kursor | Pinch = klik | Pinch 2x cepat = double-click
+  Dua jari naik/turun = scroll
+
+MASALAH UMUM
+  - Windows SmartScreen / antivirus memperingatkan: aplikasi ini belum ditandatangani.
+    Klik "More info" -> "Run anyway". Itu normal untuk aplikasi buatan sendiri.
+  - Error DLL / "VCRUNTIME/MSVCP140": pasang "Microsoft Visual C++ Redistributable (x64)".
+  - Kamera tidak terbuka: tutup aplikasi lain yang memakai kamera, atau coba
+    GestureInput.exe --camera 1
+  - Klik Cek-Instalasi.bat untuk memastikan semua komponen termuat.
