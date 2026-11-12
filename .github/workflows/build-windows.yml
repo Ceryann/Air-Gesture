@@ -1,0 +1,121 @@
+name: Build Windows
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUTF8: "1"
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # Tes hanya butuh numpy (logika murni; tanpa kamera/MediaPipe).
+      - run: python -m pip install numpy
+      - run: python -m unittest discover -s tests -t . -v
+
+  build-windows:
+    name: Build .exe (Windows)
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+          pip freeze > requirements-lock.txt
+          cat requirements-lock.txt
+
+      - name: Download hand_landmarker model
+        run: python scripts/download_model.py
+
+      - name: Build with PyInstaller
+        shell: bash
+        run: |
+          pyinstaller run_gestureinput.py \
+            --name GestureInput --onedir --console --noconfirm --clean \
+            --add-data "models/hand_landmarker.task;models" \
+            --collect-all mediapipe \
+            --hidden-import mediapipe.tasks.c \
+            --hidden-import pynput.keyboard._win32 \
+            --hidden-import pynput.mouse._win32
+
+      # Menjalankan exe hasil build: gagal di sini = bundle rusak (bukan baru ketahuan di laptop).
+      - name: Self-check the built exe
+        shell: bash
+        run: |
+          ./dist/GestureInput/GestureInput.exe --print-config > /dev/null
+          ./dist/GestureInput/GestureInput.exe --selfcheck
+
+      - name: Add launchers and instructions
+        shell: pwsh
+        run: Copy-Item packaging\* dist\GestureInput\
+
+      - name: Upload portable folder
+        uses: actions/upload-artifact@v7
+        with:
+          name: GestureInput-windows-x64
+          path: dist/GestureInput
+          retention-days: 30
+
+      - name: Upload dependency versions (for pinning)
+        uses: actions/upload-artifact@v7
+        with:
+          name: requirements-lock
+          path: requirements-lock.txt
+          retention-days: 30
+
+      - name: Zip for release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: Compress-Archive -Path dist\GestureInput -DestinationPath GestureInput-windows-x64.zip
+
+      - name: Upload release zip
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-zip
+          path: GestureInput-windows-x64.zip
+
+  release:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-zip
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: GestureInput-windows-x64.zip
+          generate_release_notes: true
