@@ -48,6 +48,18 @@ git push -u origin main
 Build manual: Actions → Build Windows → *Run workflow*. Artifact `requirements-lock` berisi versi persis dependensi yang dipakai (untuk di-pin nanti).
 Repo privat memakai kuota menit Actions (runner Windows dihitung lebih mahal); repo publik gratis.
 
+## Jalankan dari kode sumber, semua dalam satu folder (tanpa .exe)
+
+Cocok bila Smart App Control memblokir exe/DLL hasil bundle. Butuh Python 3.10–3.12 yang sudah terpasang.
+
+1. Ekstrak proyek ke satu folder (mis. `D:\GestureInput`). Bila dari zip unduhan: klik kanan zip → Properties → **Unblock** sebelum ekstrak.
+2. Klik dua kali **`setup.bat`** (sekali saja): membuat `.venv`, memasang library, mengunduh model, lalu menjalankan cek instalasi.
+3. Sehari-hari: **`jalankan-dryrun.bat`** (uji, mouse tidak disentuh) atau **`jalankan.bat`** (mouse sungguhan). `cek-instalasi.bat` untuk diagnosis.
+
+Isi folder yang dibuat setup: `.venv` (library; kira-kira beberapa ratus MB), `models` (model tangan), `.cache` (cache pip/matplotlib/pyc).
+**Menghapus folder = menghapus semuanya.** Di luar folder hanya Python itu sendiri dan file sementara Windows (TEMP).
+Update kode: timpa file proyek lalu klik `setup.bat` lagi (cepat; hanya menambah yang kurang).
+
 ## Urutan validasi (sesuai PRD §13)
 
 1. `--dry-run`: lihat skeleton; pastikan label `open_palm / pinch / two_finger / shaka` benar. Perhatikan baris `ext i/m/r/p` dan `pinch=` — itu angka yang perlu di-tuning.
