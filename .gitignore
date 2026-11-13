@@ -6,3 +6,4 @@ dist/
 *.spec
 models/*.task
 requirements-lock.txt
+.cache/
